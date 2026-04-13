@@ -8,6 +8,10 @@ const lightTemplate = typeof Audio !== "undefined" ? new Audio("/light.mp3") : n
 if (lightTemplate) {
   lightTemplate.preload = "auto";
 }
+const darkTemplate = typeof Audio !== "undefined" ? new Audio("/dark.mp3") : null;
+if (darkTemplate) {
+  darkTemplate.preload = "auto";
+}
 
 export default function Game() {
   const [ghosts, setGhosts] = useState([]);
@@ -25,6 +29,7 @@ export default function Game() {
   
   const [crossTimers, setCrossTimers] = useState([]);
   const [holyFlash, setHolyFlash] = useState(null);
+  const [darkFlash, setDarkFlash] = useState(null);
   const holyActiveRef = useRef(false);
 
   
@@ -68,6 +73,7 @@ export default function Game() {
     setLevelCatch(0);
     setCrossTimers([]);
     setHolyFlash(null);
+    setDarkFlash(null);
     holyActiveRef.current = false;
   };
 
@@ -161,11 +167,12 @@ export default function Game() {
         return;
       }
 
+      const isBlackGhost = Math.random() < 0.1;
       const newGhost = {
         id: Math.random(),
         x: Math.random() * 60 + 20,
         y: Math.random() * 30 + 50,
-        type: 'ghost'
+        type: isBlackGhost ? 'black_ghost' : 'ghost'
       };
 
       setGhosts((prev) => {
@@ -219,9 +226,18 @@ export default function Game() {
       return;
     }
 
-    if (screamTemplate && !holyActiveRef.current) {
-      const screamClone = screamTemplate.cloneNode();
-      screamClone.play().catch(err => console.log("Audio play failed:", err));
+    if (g.type === 'black_ghost') {
+      if (darkTemplate && !holyActiveRef.current) {
+        const darkClone = darkTemplate.cloneNode();
+        darkClone.play().catch(err => console.log("Audio play failed:", err));
+      }
+      setDarkFlash(Math.random());
+      setTimeout(() => setDarkFlash(null), 1500);
+    } else {
+      if (screamTemplate && !holyActiveRef.current) {
+        const screamClone = screamTemplate.cloneNode();
+        screamClone.play().catch(err => console.log("Audio play failed:", err));
+      }
     }
 
     const touches = e.changedTouches || e.touches;
@@ -243,8 +259,13 @@ export default function Game() {
     document.body.appendChild(poke);
     setTimeout(() => poke.remove(), 600);
 
-    setScore((prev) => prev + 1);
-    setLevelCatch((prev) => prev + 1);
+    if (g.type === 'black_ghost') {
+      setScore((prev) => prev - 3);
+      setLevelCatch((prev) => prev - 3);
+    } else {
+      setScore((prev) => prev + 1);
+      setLevelCatch((prev) => prev + 1);
+    }
     setGhosts((prev) => prev.filter((item) => item.id !== g.id));
   };
 
@@ -310,6 +331,11 @@ export default function Game() {
             </h2>
           </div>
 
+          {darkFlash && (
+            <div key={darkFlash} className="dark-flash">
+              <img src="/skull.png" className="jumpscare-skull" alt="skull jump scare" />
+            </div>
+          )}
           <div style={{ position: "absolute", top: "100px", bottom: "0", left: "0", right: "0", overflow: "hidden" }}>
             {holyFlash && (
               <div 
@@ -328,7 +354,11 @@ export default function Game() {
                 }}
                 onPointerDown={(e) => capture(g, e)}
               >
-                {g.type === 'cross' ? '♱' : <img src="/ghostimg.png" alt="Ghost" className="ghost-img" />}
+                {g.type === 'cross' ? '♱' : (
+                  g.type === 'black_ghost' ? 
+                  <img src="/black_Ghost.png" alt="Black Ghost" className="ghost-img black-ghost" /> :
+                  <img src="/ghostimg.png" alt="Ghost" className="ghost-img" />
+                )}
               </div>
             ))}
           </div>
