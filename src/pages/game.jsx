@@ -58,7 +58,7 @@ export default function Game() {
   // --- Audio end ---
 
   const speed = 1 + (level - 1) * 0.3;
-  const minCatch = level <= 2 ? 12 : level === 3 ? 14 : level <= 5 ? 18 : 16;
+  const minCatch = level <= 2 ? 12 : level === 3 ? 14 : 18;
   const neededToCatch = Math.max(0, minCatch - levelCatch);
 
   const resetGame = () => {
@@ -279,28 +279,37 @@ export default function Game() {
   }, [gameOver, score, highScore]);
 
   return (
-    <div className="game-container">
+    <div className={`game-container ${status === "start" ? "start-background" : ""}`}>
 
       {/* Start screen */}
       {status==="start" && (
         <div className="center">
-          <h1 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', flexWrap: 'wrap', lineHeight: '1' }}>
+          <h1 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', flexWrap: 'wrap', lineHeight: '1', pointerEvents: 'none' }}>
             <span>GHOST HUNT</span>
-            <img src="/ghostimg.png" alt="Ghost" style={{ width: '2.5em', height: '2.5em', objectFit: 'contain', margin: '-0.7em 0' }} />
+            <img src="/ghostimg.png" alt="Ghost" style={{ width: '3.25em', height: '3.25em', objectFit: 'contain', margin: '-0.4em 0' }} />
           </h1>
           {/* Changed onClick to trigger audio */}
-          <button onClick={handleStartGame}>▶</button>
+          <button onClick={handleStartGame} style={{ position: 'relative', zIndex: 10 }}>▶</button>
 
-          <div className="rule">
-            <p>
-              <span>The game has 6 levels in total.</span>
-              <span>Obtain the Holy Cross (♱) for a special attack.</span>
-              <span>Levels 1 & 2: Catch at least 12 ghosts to advance.</span>
-              <span>Level 3: Catch at least 14 ghosts to advance.</span>
-              <span>Levels 4 & 5: Catch at least 18 ghosts to advance.</span>
-              <span>Level 6 (Final Level): Catch at least 16 ghosts to win.</span>
-              <span>If you fail to meet the requirement, you lose.</span>
-            </p>
+          <div className="high-score-box">
+            <span className="max-score-label">My Max-Score</span>
+            <span className="max-score-value">{highScore}</span>
+          </div>
+
+          <div className="rules-box-container">
+            <div className="rule-title-block">
+              <h3 className="rule-heading">Survival Rules</h3>
+            </div>
+            <div className="rule">
+              <p>
+                <span>The game has 6 levels in total.</span>
+                <span>Obtain the Holy Cross (♱) for a special attack.</span>
+                <span>Levels 1 & 2: Catch at least 12 ghosts to advance.</span>
+                <span>Level 3: Catch at least 14 ghosts to advance.</span>
+                <span>Levels 4, 5 & 6: Catch at least 18 ghosts to win.</span>
+                <span>If you fail to meet the requirement, you lose.</span>
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -367,8 +376,8 @@ export default function Game() {
 
       {/* game end */}
       {gameOver && (
-        <div className={`center ${status === "failed" ? "failed-screen" : ""}`}>
-          <h1>{status === "failed" ? "HUNT FAILED 💀" : "HUNT ACCOMPLISHED 🏆"}</h1>
+        <div className={`center ${status === "failed" ? "failed-screen" : "win-screen"}`}>
+          <h1>{status === "failed" ? "HUNT FAILED" : "HUNT ACCOMPLISHED"}</h1>
           <h2 style={{ color: status === "failed" ? "#f43f5e" : "#3b82f6" }}>
             Final Score: {score}
           </h2>
